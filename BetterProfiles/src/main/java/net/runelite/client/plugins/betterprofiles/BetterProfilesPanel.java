@@ -99,7 +99,7 @@ class BetterProfilesPanel extends PluginPanel {
     private final JPanel loginPanel = new JPanel();
 
     void init() {
-        final String LOAD_ACCOUNTS = betterProfilesConfig.salt().length() == 0 ? "Save" : "Unlock";
+        final String LOAD_ACCOUNTS = betterProfilesConfig.salt().isEmpty() ? "Save" : "Unlock";
 
         setLayout(new BorderLayout(0, 10));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -112,7 +112,7 @@ class BetterProfilesPanel extends PluginPanel {
         helpPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         helpPanel.setLayout(new DynamicGridLayout(1, 1));
 
-        JLabel helpLabel = new JLabel(htmlLabel(String.format(HELP, betterProfilesConfig.salt().length() == 0 ? "save" : "unlock")));
+        JLabel helpLabel = new JLabel(htmlLabel(String.format(HELP, betterProfilesConfig.salt().isEmpty() ? "save" : "unlock")));
         helpLabel.setFont(smallFont);
 
         helpPanel.add(helpLabel);
@@ -414,7 +414,6 @@ class BetterProfilesPanel extends PluginPanel {
     }
 
     private void addAccounts(String data) {
-        //log.info("Data: " + data);
         data = data.trim();
         if (!data.contains(":")) {
             return;
@@ -440,7 +439,7 @@ class BetterProfilesPanel extends PluginPanel {
     }
 
     private byte[] getSalt() {
-        if (betterProfilesConfig.salt().length() == 0) {
+        if (betterProfilesConfig.salt().isEmpty()) {
             return new byte[0];
         }
         return base64Decode(betterProfilesConfig.salt());
@@ -460,8 +459,12 @@ class BetterProfilesPanel extends PluginPanel {
     private String getProfileData() throws InvalidKeySpecException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
         String tmp = betterProfilesConfig.profilesData();
         if (tmp.startsWith("¬")) {
-            tmp = tmp.substring(2);
-            return decryptText(base64Decode(tmp), getAesKey());
+            tmp = tmp.substring(1);
+            byte[] decoded = base64Decode(tmp);
+            if (decoded.length % 16 != 0) {
+                throw new IllegalStateException("Encrypted data length is not a multiple of 16 bytes");
+            }
+            return decryptText(decoded, getAesKey());
         }
         return tmp;
     }
@@ -502,6 +505,9 @@ class BetterProfilesPanel extends PluginPanel {
     }
 
     private static String decryptText(byte[] enc, SecretKey aesKey) throws NoSuchAlgorithmException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchPaddingException {
+        if (enc == null || enc.length == 0) {
+            throw new IllegalArgumentException("Encrypted data is null or empty");
+        }
         Cipher cipher = Cipher.getInstance("AES");
         SecretKeySpec newKey = new SecretKeySpec(aesKey.getEncoded(), "AES");
         cipher.init(Cipher.DECRYPT_MODE, newKey);

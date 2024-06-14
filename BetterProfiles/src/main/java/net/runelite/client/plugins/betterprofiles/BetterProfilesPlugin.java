@@ -47,7 +47,6 @@ import net.runelite.client.util.ImageUtil;
 
 @PluginDescriptor(
         name = "<html><font color=\"#FF9DF9\">[PP]</font> Better Profiles</html>",
-        enabledByDefault = false,
         description = "Allow for a allows you to easily switch between multiple OSRS Accounts - Ported by Piggy",
         tags = {"profile", "account", "login", "log in", "pklite"}
 )
@@ -67,6 +66,7 @@ public class BetterProfilesPlugin extends Plugin {
 
     private BetterProfilesPanel panel;
     private NavigationButton navButton;
+    private BufferedImage icon;
 
     @Provides
     BetterProfilesConfig getConfig(ConfigManager configManager) {
@@ -78,16 +78,22 @@ public class BetterProfilesPlugin extends Plugin {
         panel = injector.getInstance(BetterProfilesPanel.class);
         panel.init();
 
-        final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "profiles_icon.png");
+        if (icon == null) {
+            icon = ImageUtil.loadImageResource(getClass(), "profiles_icon.png");
+        }
 
-        navButton = NavigationButton.builder()
-                .tooltip("Profiles")
-                .icon(icon)
-                .priority(8)
-                .panel(panel)
-                .build();
+        if (icon != null) {
+            navButton = NavigationButton.builder()
+                    .tooltip("Profiles")
+                    .icon(icon)
+                    .priority(8)
+                    .panel(panel)
+                    .build();
 
-        clientToolbar.addNavigation(navButton);
+            clientToolbar.addNavigation(navButton);
+        } else {
+            log.error("Failed to load profiles_icon.png");
+        }
     }
 
     @Override
