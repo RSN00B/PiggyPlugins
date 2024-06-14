@@ -25,15 +25,7 @@
 package net.runelite.client.plugins.betterprofiles;
 
 import com.google.inject.Provides;
-
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ScheduledExecutorService;
-import java.security.GeneralSecurityException;
-import javax.inject.Inject;
-import javax.swing.*;
-
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -44,6 +36,10 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
+
+import javax.inject.Inject;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.ScheduledExecutorService;
 
 @PluginDescriptor(
         name = "<html><font color=\"#FF9DF9\">[PP]</font> Better Profiles</html>",
@@ -116,11 +112,7 @@ public class BetterProfilesPlugin extends Plugin {
             }
             if (!event.getKey().equals("rememberPassword")) {
                 panel = injector.getInstance(BetterProfilesPanel.class);
-                try {
-                    panel.redrawProfiles();
-                } catch (GeneralSecurityException gse) {
-                    log.error("Error redrawing profiles panel", gse);
-                }
+                panel.redrawProfiles();
             }
         }
     }
